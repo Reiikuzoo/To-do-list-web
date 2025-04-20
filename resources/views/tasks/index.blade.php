@@ -18,30 +18,28 @@
 
 <div class="container mt-4">
     <div class="row">
-         <!-- Sidebar -->
-        <div class="w-64 bg-white shadow p-4">
-            <h5 class="text-xl font-semibold mb-4">Rei To-Do List</h5>
+        <!-- Navbar -->
+        <nav class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md rounded-b-2xl py-4 px-6 max-w-screen-xl mx-auto flex justify-between items-center">
+            <!-- Kiri: Judul dan Tambah Tugas -->
+            <div class="flex items-center gap-4">
+                <h1 class="text-2xl font-bold text-gray-900">
+                    Rei<span class="text-blue-600">ToDo</span>List
+                </h1>
+            </div>
 
-            <button 
-                class="bg-blue-600 text-white font-medium py-2 px-4 w-full rounded hover:bg-blue-700 transition"
-                data-bs-toggle="modal" 
-                data-bs-target="#addTaskModal">
-                Tambah tugas
-            </button>
-
-            <ul class="space-y-2 mt-4">
-                @foreach ($tasks as $task)
-                    <li>
-                        <button class="bg-gray-600 text-white py-2 px-3 w-full rounded text-left hover:bg-gray-700 transition">
-                            {{ $task->title }}
-                        </button>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
+            <!-- Kanan: Placeholder buat future fitur -->
+            <div class="flex items-center gap-4">
+                <button 
+                    class="bg-blue-600 text-white font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#addTaskModal">
+                    Tambah Tugas
+                </button>
+            </div>
+        </nav>
 
         <!-- Main Content -->
-        <div class="flex-1 px-6 py-4">
+        <div class="pt-24 px-6 max-w-screen-xl mx-auto">
             <!-- Header: Filter dan Kalender -->
             <div class="flex flex-col md:flex-row justify-end items-center gap-4 mb-6">
 
@@ -50,14 +48,14 @@
                 type="button"
                 class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded shadow transition"
                 data-bs-toggle="modal" data-bs-target="#calendarModal">
-                🗓️ Kalender Deadline
+                Kalender Deadline
             </button>
 
             <!-- Filter Prioritas -->
             <form method="GET" action="{{ route('tasks.index') }}">
                 <select name="priority" onchange="this.form.submit()" 
                     class="text-sm border border-gray-300 rounded px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Semua Prioritas</option>
+                    <option value="">Semua</option>
                     <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>🚨 High</option>
                     <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>⚠️ Medium</option>
                     <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>✅ Low</option>
@@ -80,20 +78,32 @@
             @foreach($tasks->where('completed', false) as $task)
                 <div class="card my-3" id="task{{ $task->id }}">
                     <div class="card-body">
+                        
                     <div class="bg-white border rounded-lg shadow p-4 mb-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                         <div>
                             <h5 class="text-lg font-semibold">{{ $task->title }}</h5>
                             <p class="text-sm text-gray-500">{{ $task->deadline ? $task->deadline->format('d M Y H:i') : 'Tidak ada deadline' }}</p>
                         </div>
-
+                        <!-- Progress Bar yang Lebih Stylish -->
+                        <div class="mt-3">
+                            <div class="relative w-full bg-gray-100 rounded-full h-3 shadow-inner overflow-hidden">
+                                <div 
+                                    class="absolute top-0 left-0 h-full bg-green-500 transition-all duration-500 ease-in-out" 
+                                    style="width: {{ $task->progress() }}%;">
+                                </div>
+                            </div>
+                            <div class="text-right mt-1 text-xs text-gray-600 font-medium">
+                                {{ round($task->progress()) }}% selesai
+                            </div>
+                        </div>
                         <div class="flex items-center gap-3">
                             <span class="text-xs px-2 py-1 rounded font-semibold
                                 {{ $task->priority == 'high' ? 'bg-red-500 text-white' :
                                 ($task->priority == 'medium' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white') }}">
                                 {{ ucfirst($task->priority) }}
                             </span>
-
+                                    
                             <!-- Action Buttons -->
                          <div class="flex items-center gap-2">
                                 <form action="{{ route('tasks.complete', $task->id) }}" method="POST">
@@ -112,22 +122,11 @@
                                     <i data-feather="plus-circle"></i>
                                 </button>
                             </div>
-
+                            
                         </div>
                     </div>
 
-                    <!-- Progress Bar yang Lebih Stylish -->
-                    <div class="mt-4">
-                        <div class="relative w-full bg-gray-100 rounded-full h-3 shadow-inner overflow-hidden">
-                            <div 
-                                class="absolute top-0 left-0 h-full bg-green-500 transition-all duration-500 ease-in-out" 
-                                style="width: {{ $task->progress() }}%;">
-                            </div>
-                        </div>
-                        <div class="text-right mt-1 text-xs text-gray-600 font-medium">
-                            {{ round($task->progress()) }}% selesai
-                        </div>
-                    </div>
+                    
 
                 </div>
 
@@ -201,9 +200,9 @@
             </div>
 
             <!-- Completed Tasks -->
-            <h5 class="mt-4">Tugas selesai</h5>
+            <h5 class="mt-4 text-lg font-semibold mb-2">Tugas selesai</h5>
             @if($tasks->where('completed', true)->isEmpty())
-                <p class="text-muted">Belum ada tugas yang selesai.</p>
+                <p class="text-muted text-gray-500 italic">Belum ada tugas yang selesai.</p>
             @endif
 
             @foreach($tasks->where('completed', true) as $task)
